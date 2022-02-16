@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="styles.css">
+        <script src="scripts/uheprng.js"></script>
+    </head>
+    <body>
+        <input id="user-input" placeholder="type here" />
+        <a href="javascript:generateVideo();">Generate Video</a>
+        <div id="video-container"></div>
+    </body>
+
+    <script type="text/javascript">
+        const videoUrls = [
+            // replace these with the path or url to each of your fragment videos
+            "videos/cement-water-grass-fragments.mp4",
+            "videos/hands-fastness-surprise-fragments.mp4",
+        ]
+
+        const randomizer = uheprng()
+        const numVideosToCombine = 5
+        let selectedVideos = []
+        let videosPlayed = 0
+        
+
+        const getRandomNumbers = () => {
+            const userInput = document.getElementById("user-input").value
+            randomizer.initState();
+            randomizer.hashString(userInput)
+
+            return Array(numVideosToCombine).fill().map(n => randomizer(videoUrls.length))
+        }
+
+        const generateVideo = () => {
+            const videoIndexes = getRandomNumbers()
+            const videoContainerHtml = document.getElementById("video-container")
+            selectedVideos.map(video => pauseVideo(video))
+            selectedVideos = videoIndexes.map(index => {
+                const video = document.createElement('video')
+                video.src = videoUrls[index]
+                video.id = `video-${index}`
+                videoContainerHtml.appendChild(video)
+                video.load()
+
+                return video
+            })
+            videosPlayed = 0
+
+            playNextVideo()
+        }
+
+        const playNextVideo = () => {
+            const previousVideo = selectedVideos[videosPlayed -1]
+            previousVideo && pauseVideo(previousVideo)
+
+            const currentVideo = selectedVideos[videosPlayed]
+            if (!currentVideo) return false
+
+            playVideo(currentVideo)
+            videosPlayed++
+
+            return currentVideo
+        }
+
+        const playVideo = (video) => {
+            video.classList.add("playing");
+            video.play()
+            video.addEventListener('ended', playNextVideo, false);
+        }
+
+        const pauseVideo = (video) => {
+            video.removeEventListener('ended', playNextVideo);
+            !video.paused && video.pause()
+            video.classList.remove("playing");
+        }
+    </script>
+</html>
